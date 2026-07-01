@@ -49,6 +49,31 @@ body {
     gap: 0.5rem;
 }
 
+.menu-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.menu-item {
+    padding: 0.8rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.menu-item:hover, .menu-item.active {
+    background-color: var(--card-color);
+    color: #fff;
+}
+
+.menu-item.active {
+    border-left: 4px solid var(--primary);
+}
+
 /* Notifications Box na Sidebar */
 .notifications-panel {
     margin-top: auto;
@@ -85,7 +110,115 @@ header h1 {
     color: var(--text-primary);
 }
 
-/* Cards com elevação sutil e sem bordas duras */
+/* Seções Principais (Abas do Menu) */
+.view-section {
+    display: none;
+    animation: fadeIn 0.4s ease-in-out;
+}
+
+.view-section.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Layout Split-Screen para Tela de Autenticação */
+.split-container {
+    display: flex;
+    min-height: 580px;
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: var(--card-color);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    border: 1px solid var(--border-color);
+}
+
+.split-left {
+    flex: 1;
+    background-color: #0b1f1f;
+    padding: 3.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid var(--border-color);
+}
+
+.branding-box h2 {
+    color: var(--primary);
+    font-size: 2.2rem;
+    margin-bottom: 1.5rem;
+}
+
+.branding-box p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    font-size: 1.05rem;
+}
+
+.split-right {
+    flex: 1.3;
+    padding: 3.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* Abas de Formulários na Autenticação */
+.auth-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1rem;
+}
+
+.auth-tab-btn {
+    background: transparent;
+    color: var(--text-secondary);
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.6rem 1.2rem;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    border-radius: 6px;
+    width: auto;
+}
+
+.auth-tab-btn:hover {
+    color: #fff;
+    background-color: rgba(255,255,255,0.03);
+}
+
+.auth-tab-btn.active {
+    color: #fff;
+    background-color: var(--primary);
+}
+
+/* Controle de Exibição dos Formulários */
+.auth-form {
+    display: none;
+}
+
+.auth-form.active {
+    display: block;
+    animation: fadeInForm 0.3s ease-in-out;
+}
+
+@keyframes fadeInForm {
+    from { opacity: 0; transform: scale(0.98); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.auth-form h2 {
+    margin-bottom: 1.5rem;
+    color: #fff;
+}
+
+/* Cards de Informações Gerais */
 .card {
     background-color: var(--card-color);
     border-radius: 12px;
@@ -102,7 +235,7 @@ header h1 {
     font-size: 1.2rem;
 }
 
-/* Grid Layouts */
+/* Grid KPIs */
 .grid-kpis {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -110,19 +243,6 @@ header h1 {
     margin-bottom: 2rem;
 }
 
-.grid-main {
-    display: grid;
-    grid-template-columns: 1fr 1.8fr;
-    gap: 2rem;
-}
-
-@media (max-width: 1024px) {
-    .grid-main {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* KPIs alinhados uniformemente */
 .kpi-card {
     display: flex;
     flex-direction: column;
@@ -139,7 +259,7 @@ header h1 {
 
 .kpi-value {
     display: flex;
-    align-items: baseline;    /* Alinhamento uniforme pela linha de base */
+    align-items: baseline;
     gap: 5px;
     font-weight: 700;
     line-height: 1.1;
@@ -153,16 +273,16 @@ header h1 {
     font-weight: 500;
 }
 
-/* Score de Confiança Card - Correções de Vazamento */
+/* Score de Confiança Card */
 .score-card {
-    min-width: 0;             /* Necessário para prevenir estouro no grid flex */
+    min-width: 0;
 }
 
 .score-value {
-    font-size: 1.6rem;        /* Diminuído o tamanho principal */
+    font-size: 1.6rem;
     font-weight: 700;
     line-height: 1.2;
-    word-wrap: break-word;    /* Força a quebra de strings longas */
+    word-wrap: break-word;
     overflow-wrap: break-word;
     color: var(--accent);
 }
@@ -245,14 +365,14 @@ button:hover, .btn:hover {
 }
 
 .checkin-option input[type="radio"] {
-    display: none; /* Oculta input padrão */
+    display: none;
 }
 
 .checkin-label {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px; /* Gap entre emoji e texto */
+    gap: 10px;
     padding: 0.8rem;
     background-color: #0f2424;
     border: 2px solid #2a4d4d;
@@ -270,7 +390,6 @@ button:hover, .btn:hover {
     background-color: rgba(45, 90, 39, 0.1);
 }
 
-/* Estado Marcado (:checked) do Check-in */
 .checkin-option input[type="radio"]:checked + .checkin-label {
     background-color: var(--primary);
     border-color: var(--primary);
@@ -306,7 +425,7 @@ tr:hover td {
     background-color: rgba(255, 255, 255, 0.02);
 }
 
-/* Empty States Humanizados e Intencionais */
+/* Empty States */
 .empty-state {
     display: flex;
     flex-direction: column;
@@ -332,7 +451,7 @@ tr:hover td {
     font-weight: 500;
 }
 
-/* Paginação ancorada abaixo da tabela */
+/* Paginação */
 .pagination-container {
     display: flex;
     justify-content: center;

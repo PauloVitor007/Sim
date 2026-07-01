@@ -2,8 +2,9 @@
 import DatabaseConnection from './db.js';
 
 // --- PADRÃO OBSERVER (Pub/Sub) ---
-// Professor, o padrão Observer é utilizado para atualizar a tabela na tela de forma reativa e automática
-// assim que o Firebase confirma a gravação do voluntário, sem necessitar de recarregar a página (F5).
+// Professor, a classe EventObserver gerencia o disparo reativo de eventos da nossa SPA.
+// Quando cadastramos um voluntário, o observer notifica os listeners inscritos para atualizar
+// a tabela e recalcular os KPIs do dashboard instantaneamente.
 class VoluntarioObserver {
     constructor() {
         this.listeners = [];
@@ -18,7 +19,6 @@ class VoluntarioObserver {
     }
 }
 
-// Instancia o observer que monitora novos cadastros de voluntários
 const cadastroObserver = new VoluntarioObserver();
 
 // --- PADRÃO FACADE (Auditoria e Indicadores) ---
@@ -48,18 +48,73 @@ const voluntarioMocks = [
     { nome: "Beatriz Costa", email: "beatriz.costa@email.com", ong: "Casa Durval Paiva", dataCadastro: new Date(Date.now() - 3600000 * 12).toISOString() }
 ];
 
-// Carrega as ONGs do Firebase e as une às mockadas padrão, populando o dropdown select
+// --- NAVEGAÇÃO ENTRE VISÕES PRINCIPAIS (DASHBOARD vs ACESSO) ---
+const menuAcesso = document.getElementById('menu-acesso');
+const menuDashboard = document.getElementById('menu-dashboard');
+const viewAuth = document.getElementById('view-auth');
+const viewDashboard = document.getElementById('view-dashboard');
+
+function alternarSecaoPrincipal(secaoAtiva) {
+    if (secaoAtiva === 'auth') {
+        menuAcesso.classList.add('active');
+        menuDashboard.classList.remove('active');
+        viewAuth.classList.add('active');
+        viewDashboard.classList.remove('active');
+    } else {
+        menuDashboard.classList.add('active');
+        menuAcesso.classList.remove('active');
+        viewDashboard.classList.add('active');
+        viewAuth.classList.remove('active');
+    }
+}
+
+if (menuAcesso && menuDashboard) {
+    menuAcesso.addEventListener('click', () => alternarSecaoPrincipal('auth'));
+    menuDashboard.addEventListener('click', () => alternarSecaoPrincipal('dashboard'));
+}
+
+// --- NAVEGAÇÃO DE ABAS DE FORMULÁRIO NA TELA DE ACESSO ---
+const tabBtnLogin = document.getElementById('tab-btn-login');
+const tabBtnOng = document.getElementById('tab-btn-ong');
+const tabBtnVoluntario = document.getElementById('tab-btn-voluntario');
+
+const formLogin = document.getElementById('login-form');
+const formOng = document.getElementById('ong-form');
+const formCadastro = document.getElementById('cadastro-form');
+
+function alternarFormAuth(abaAtiva) {
+    const botoes = [tabBtnLogin, tabBtnOng, tabBtnVoluntario];
+    const formularios = [formLogin, formOng, formCadastro];
+
+    botoes.forEach(b => b?.classList.remove('active'));
+    formularios.forEach(f => f?.classList.remove('active'));
+
+    if (abaAtiva === 'login') {
+        tabBtnLogin?.classList.add('active');
+        formLogin?.classList.add('active');
+    } else if (abaAtiva === 'ong') {
+        tabBtnOng?.classList.add('active');
+        formOng?.classList.add('active');
+    } else if (abaAtiva === 'voluntario') {
+        tabBtnVoluntario?.classList.add('active');
+        formCadastro?.classList.add('active');
+    }
+}
+
+tabBtnLogin?.addEventListener('click', () => alternarFormAuth('login'));
+tabBtnOng?.addEventListener('click', () => alternarFormAuth('ong'));
+tabBtnVoluntario?.addEventListener('click', () => alternarFormAuth('voluntario'));
+
+// --- LÓGICA DE ONGs ---
 async function carregarOngs() {
     const selectElement = document.getElementById('ong-vinculada');
     if (!selectElement) return;
 
-    // Busca ONGs reais salvas no Firebase Firestore
+    // Busca ONGs cadastradas em tempo real no Firebase Firestore
     const ongsReais = await DatabaseConnection.obterOngs();
-    
-    // Nomes das ONGs vindas do Firebase
     const nomesOngsReais = ongsReais.map(o => o.nome);
 
-    // Combina ONGs padrão com as criadas na nuvem, removendo duplicados
+    // Une com a lista mockada estática, removendo duplicados
     const todasOngs = [...new Set([...ongMocksPadrao, ...nomesOngsReais])];
 
     selectElement.innerHTML = '';
@@ -71,7 +126,40 @@ async function carregarOngs() {
     });
 }
 
-// Carrega e desenha a tabela de voluntários cadastrados
+async function handleCadastrarOng(event) {
+    event.preventDefault();
+
+    const nome = document.getElementById('nomeOng').value.trim();
+    const areaAtuacao = document.getElementById('areaAtuacao').value.trim();
+
+    if (!nome || !areaAtuacao) {
+        alert("Por favor, preencha todos os campos da ONG.");
+        return;
+    }
+
+    const novaOng = {
+        nome: nome,
+        areaAtuacao: areaAtuacao,
+        dataCadastro: new Date().toISOString()
+    };
+
+    const sucesso = await DatabaseConnection.salvarOng(novaOng);
+
+    if (sucesso) {
+        alert(`ONG "${nome}" cadastrada com sucesso no Firebase!`);
+        document.getElementById('ong-form').reset();
+        
+        // Atualiza dinamicamente o select de vínculo de voluntários
+        await carregarOngs();
+        
+        // Direciona o usuário para a aba de cadastro de voluntários para conveniência
+        alternarFormAuth('voluntario');
+    } else {
+        alert("Erro ao cadastrar ONG no Firebase.");
+    }
+}
+
+// --- LÓGICA DE VOLUNTÁRIOS ---
 async function renderizarTabela() {
     const listaElement = document.getElementById('lista-voluntarios');
     const tabelaVazia = document.getElementById('tabela-vazia');
@@ -79,25 +167,17 @@ async function renderizarTabela() {
     
     if (!listaElement) return;
 
-    // Busca os dados cadastrados realmente no Firebase Firestore
+    // Busca voluntários salvos em tempo real no Firebase Firestore
     const listaReais = await DatabaseConnection.obterVoluntarios();
-    
-    // Une dados reais com dados de Fachada (Mocks)
     const listaCompleta = [...voluntarioMocks, ...listaReais];
 
-    // Atualiza o KPI de voluntários ativos
+    // Atualiza KPIs
     const kpiAtivos = document.querySelector('.grid-kpis .kpi-card:nth-child(3) .kpi-value span');
-    if (kpiAtivos) {
-        kpiAtivos.textContent = listaCompleta.length;
-    }
+    if (kpiAtivos) kpiAtivos.textContent = listaCompleta.length;
 
-    // Atualiza o KPI de total de horas (média simulada de 6h por voluntário)
     const kpiHoras = document.querySelector('.grid-kpis .kpi-card:nth-child(1) .kpi-value span');
-    if (kpiHoras) {
-        kpiHoras.textContent = listaCompleta.length * 6;
-    }
+    if (kpiHoras) kpiHoras.textContent = listaCompleta.length * 6;
 
-    // Atualiza o KPI de Investimento Social estimado
     const kpiInvestimento = document.querySelector('.grid-kpis .kpi-card:nth-child(2) .kpi-value span:last-child');
     if (kpiInvestimento) {
         kpiInvestimento.textContent = (listaCompleta.length * 120).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -127,9 +207,8 @@ async function renderizarTabela() {
     });
 }
 
-// Função de Tratamento do Submit do Formulário de Voluntários
 async function handleCadastrarVoluntario(event) {
-    event.preventDefault(); // Impede o reload da página
+    event.preventDefault();
 
     const nome = document.getElementById('nomeVoluntario').value.trim();
     const email = document.getElementById('emailVoluntario').value.trim();
@@ -149,85 +228,60 @@ async function handleCadastrarVoluntario(event) {
         dataCadastro: new Date().toISOString()
     };
 
-    // 1. Gravação Real no Firebase Firestore
+    // Gravação no Firebase
     const sucesso = await DatabaseConnection.salvarVoluntario(novoVoluntario);
 
     if (sucesso) {
-        // Auditoria IA Simulado via Facade
+        // Auditoria IA via Facade
         const auditoria = GeminiFacade.calcularScore(novoVoluntario);
-        
-        // Atualiza dinamicamente o Score de Confiança na tela
         const scoreVal = document.querySelector('.score-card .score-value');
-        if (scoreVal) {
-            scoreVal.textContent = `${auditoria.score}% Certificado pelo Selo ESG Raízes do Bem`;
-        }
+        if (scoreVal) scoreVal.textContent = `${auditoria.score}% Certificado pelo Selo ESG Raízes do Bem`;
+        
         const scoreDesc = document.querySelector('.score-card .score-desc');
-        if (scoreDesc) {
-            scoreDesc.textContent = `${auditoria.status} (${auditoria.selo})`;
-        }
+        if (scoreDesc) scoreDesc.textContent = `${auditoria.status} (${auditoria.selo})`;
 
-        alert(`Voluntário ${nome} vinculado à ONG ${ong} com sucesso!`);
+        alert(`Voluntário ${nome} cadastrado com sucesso!`);
         document.getElementById('cadastro-form').reset();
         
-        // Reseta o check-in emocional para o padrão
         const radioAnimado = document.getElementById('checkin-animado');
         if (radioAnimado) radioAnimado.checked = true;
 
-        // 2. Dispara Notificação pelo Observer para atualizar a tabela na hora
+        // Dispara o Observer para notificar alteração de dados e reconstruir a tabela
         cadastroObserver.notify(novoVoluntario);
+
+        // Direciona visualmente ao Dashboard para a visualização das métricas
+        alternarSecaoPrincipal('dashboard');
     } else {
-        alert("Erro ao salvar voluntário no Firebase Firestore.");
+        alert("Erro ao salvar voluntário no Firebase.");
     }
 }
 
-// Função de Tratamento do Submit do Formulário de Cadastro de ONGs
-async function handleCadastrarOng(event) {
-    event.preventDefault(); // Impede o reload da página
-
-    const nome = document.getElementById('nomeOng').value.trim();
-    const areaAtuacao = document.getElementById('areaAtuacao').value.trim();
-
-    if (!nome || !areaAtuacao) {
-        alert("Por favor, preencha todos os campos da ONG.");
-        return;
-    }
-
-    const novaOng = {
-        nome: nome,
-        areaAtuacao: areaAtuacao,
-        dataCadastro: new Date().toISOString()
-    };
-
-    // 1. Gravação da nova ONG no Firebase Firestore
-    const sucesso = await DatabaseConnection.salvarOng(novaOng);
-
-    if (sucesso) {
-        alert(`ONG "${nome}" cadastrada com sucesso!`);
-        document.getElementById('ong-form').reset();
-
-        // 2. Atualiza dinamicamente o <select> do formulário de voluntários
-        await carregarOngs();
-    } else {
-        alert("Erro ao cadastrar ONG no Firebase Firestore.");
-    }
+// --- LOGICA DE LOGIN (REDIRECIONAMENTO SIMULADO DO MVP) ---
+function handleLogin(event) {
+    event.preventDefault();
+    const email = document.getElementById('login-email').value.trim();
+    alert(`Boas-vindas! Acesso concedido para o administrador de e-mail ${email}.`);
+    document.getElementById('login-form').reset();
+    
+    // Direciona ao Dashboard automaticamente após login bem sucedido
+    alternarSecaoPrincipal('dashboard');
 }
 
-// O Observer escuta novos cadastros e reconstrói a tabela reativa
+// Registro no Observer
 cadastroObserver.subscribe(() => {
     renderizarTabela();
 });
 
-// Vincula os listeners diretamente aos formulários no carregamento do script
-const formVoluntario = document.getElementById('cadastro-form');
-if (formVoluntario) {
-    formVoluntario.addEventListener('submit', handleCadastrarVoluntario);
-}
+// Vincula os listeners diretamente
+const loginForm = document.getElementById('login-form');
+if (loginForm) loginForm.addEventListener('submit', handleLogin);
 
-const formOng = document.getElementById('ong-form');
-if (formOng) {
-    formOng.addEventListener('submit', handleCadastrarOng);
-}
+const ongForm = document.getElementById('ong-form');
+if (ongForm) ongForm.addEventListener('submit', handleCadastrarOng);
 
-// Inicializa a carga de dados nos dropdowns e tabelas
+const cadastroForm = document.getElementById('cadastro-form');
+if (cadastroForm) cadastroForm.addEventListener('submit', handleCadastrarVoluntario);
+
+// Inicializa a carga de dropdowns e dados
 carregarOngs();
 renderizarTabela();
