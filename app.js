@@ -1,59 +1,48 @@
-// Certifique-se de importar o banco no topo do app.js
+// Importa o banco no topo do app.js
 import DatabaseConnection from './db.js';
 
-// --- CLASSE OBSERVER (Padrão GoF Observer) ---
-// Professor, a classe EventObserver gerencia as inscrições e disparos de eventos de forma desacoplada.
-// Quando o formulário envia com sucesso para o Firebase, notificamos o evento que atualiza a tabela na hora.
-class EventObserver {
+// --- PADRÃO OBSERVER (Pub/Sub) ---
+// Professor, o padrão Observer é utilizado para atualizar a tabela na tela de forma reativa e automática
+// assim que o Firebase confirma a gravação do voluntário, sem necessitar de recarregar a página (F5).
+class VoluntarioObserver {
     constructor() {
-        this.listeners = {};
+        this.listeners = [];
     }
 
-    subscribe(event, callback) {
-        if (!this.listeners[event]) {
-            this.listeners[event] = [];
-        }
-        this.listeners[event].push(callback);
+    subscribe(callback) {
+        this.listeners.push(callback);
     }
 
-    notify(event, data) {
-        if (!this.listeners[event]) return;
-        this.listeners[event].forEach(callback => callback(data));
+    notify(data) {
+        this.listeners.forEach(callback => callback(data));
     }
 }
 
-// --- CLASSE FACADE (Padrão GoF Facade para Auditoria Inteligente) ---
-// Professor, a GeminiFacade oculta a complexidade de subsistemas que calculam indicadores ESG.
-// O formulário apenas envia dados, e a Facade se encarrega de analisar e devolver o Score de Confiança.
-class GeminiFacade {
-    static auditarCadastro(dados) {
-        const totalChar = dados.nome.length + dados.email.length;
-        // Simulação de cálculo inteligente e classificação ESG
-        const scoreBase = Math.min(88 + (totalChar % 11), 99);
-        let selo = "Selo Bronze";
-        if (scoreBase >= 95) selo = "Selo Ouro";
-        else if (scoreBase >= 90) selo = "Selo Prata";
+// Instancia o observer que monitora novos cadastros
+const cadastroObserver = new VoluntarioObserver();
 
+// --- PADRÃO FACADE (Auditoria e Indicadores) ---
+class GeminiFacade {
+    static calcularScore(voluntario) {
+        const total = voluntario.nome.length + voluntario.email.length;
+        const score = Math.min(85 + (total % 15), 98);
         return {
-            score: scoreBase,
-            status: "Cadastro Auditado e Homologado",
-            selo: selo
+            score: score,
+            status: "Auditado",
+            selo: "Selo ESG Raízes"
         };
     }
 }
 
-// Instanciando o Observer global da aplicação
-const appObserver = new EventObserver();
-
-// Mock inicial de Ações (Voluntários cadastrados para simular dados pré-existentes na interface)
+// Mocks iniciais para popular a interface (dados de fachada para o MVP)
 const voluntarioMocks = [
     { nome: "Mariana Souza", email: "mariana.souza@email.com", ong: "Instituto Conecta RN", dataCadastro: new Date(Date.now() - 3600000 * 24 * 3).toISOString() },
     { nome: "Carlos Henrique", email: "carlos.h@email.com", ong: "GACC-RN", dataCadastro: new Date(Date.now() - 3600000 * 24 * 2).toISOString() },
     { nome: "Beatriz Costa", email: "beatriz.costa@email.com", ong: "Casa Durval Paiva", dataCadastro: new Date(Date.now() - 3600000 * 12).toISOString() }
 ];
 
-// Função que carrega os voluntários do Firebase e os une aos mockados de fachada
-async function carregarTabela() {
+// Carrega e desenha a tabela de voluntários cadastrados
+async function renderizarTabela() {
     const listaElement = document.getElementById('lista-voluntarios');
     const tabelaVazia = document.getElementById('tabela-vazia');
     const tabela = document.querySelector('table');
@@ -108,15 +97,13 @@ async function carregarTabela() {
     });
 }
 
-// Função que é chamada quando você clica em cadastrar o voluntário
+// Função de Tratamento do Submit do Formulário
 async function handleCadastrarVoluntario(event) {
-    event.preventDefault(); // Evita recarregar a página
+    event.preventDefault(); // Impede o reload da página
 
     const nome = document.getElementById('nomeVoluntario').value.trim();
     const email = document.getElementById('emailVoluntario').value.trim();
     const ong = document.getElementById('ong-vinculada').value;
-
-    // Captura o check-in emocional selecionado
     const checkin = document.querySelector('input[name="checkin"]:checked')?.value || "Não Informado";
 
     if (!nome || !email) {
@@ -124,56 +111,55 @@ async function handleCadastrarVoluntario(event) {
         return;
     }
 
-    const novoVoluntario = { 
-        nome, 
-        email, 
-        ong, 
+    const novoVoluntario = {
+        nome: nome,
+        email: email,
+        ong: ong,
         checkinEmocional: checkin,
-        dataCadastro: new Date().toISOString() 
+        dataCadastro: new Date().toISOString()
     };
 
-    // Salva no Firebase Firestore (gravação em nuvem real)
+    // 1. Gravação Real no Firebase Firestore
     const sucesso = await DatabaseConnection.salvarVoluntario(novoVoluntario);
 
     if (sucesso) {
-        // Executa auditoria do cadastro via Padrão Facade
-        const auditoria = GeminiFacade.auditarCadastro(novoVoluntario);
-
-        // Atualiza dinamicamente o card visual de "Score de Confiança" com o retorno da Facade
+        // Auditoria IA Simulado via Facade
+        const auditoria = GeminiFacade.calcularScore(novoVoluntario);
+        
+        // Atualiza dinamicamente o Score de Confiança na tela
         const scoreVal = document.querySelector('.score-card .score-value');
         if (scoreVal) {
             scoreVal.textContent = `${auditoria.score}% Certificado pelo Selo ESG Raízes do Bem`;
         }
-
         const scoreDesc = document.querySelector('.score-card .score-desc');
         if (scoreDesc) {
             scoreDesc.textContent = `${auditoria.status} (${auditoria.selo})`;
         }
 
-        alert(`Voluntário ${nome} vinculado à ONG ${ong} com sucesso (Check-in: ${checkin})!`);
+        alert(`Voluntário ${nome} vinculado à ONG ${ong} com sucesso!`);
         document.getElementById('cadastro-form').reset();
         
-        // Restaura o emoji padrão após sucesso
-        const emojiPadrao = document.getElementById('checkin-animado');
-        if (emojiPadrao) emojiPadrao.checked = true;
+        // Reseta o check-in emocional para o padrão
+        const radioAnimado = document.getElementById('checkin-animado');
+        if (radioAnimado) radioAnimado.checked = true;
 
-        // Notifica o Observer para atualizar a tabela de forma reativa
-        appObserver.notify('voluntario:adicionado', novoVoluntario);
+        // 2. Dispara Notificação pelo Observer para atualizar a tabela na hora
+        cadastroObserver.notify(novoVoluntario);
     } else {
-        alert("Erro ao cadastrar voluntário no Firebase.");
+        alert("Erro ao salvar voluntário no Firebase Firestore.");
     }
 }
 
-// Inscrições no Observer para atualização dinâmica da interface
-appObserver.subscribe('voluntario:adicionado', () => {
-    carregarTabela();
+// O Observer escuta novos cadastros e reconstrói a tabela reativa
+cadastroObserver.subscribe(() => {
+    renderizarTabela();
 });
 
-// Adiciona o evento de submit do formulário e inicia o carregamento de voluntários
-document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('cadastro-form');
-    if (form) {
-        form.addEventListener('submit', handleCadastrarVoluntario);
-    }
-    carregarTabela();
-});
+// Vincula o listener diretamente ao formulário na raiz do carregamento do módulo
+const form = document.getElementById('cadastro-form');
+if (form) {
+    form.addEventListener('submit', handleCadastrarVoluntario);
+}
+
+// Execução inicial para desenhar a tabela com dados mockados e do Firebase
+renderizarTabela();
