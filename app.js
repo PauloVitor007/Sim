@@ -18,7 +18,7 @@ class VoluntarioObserver {
     }
 }
 
-// Instancia o observer que monitora novos cadastros
+// Instancia o observer que monitora novos cadastros de voluntários
 const cadastroObserver = new VoluntarioObserver();
 
 // --- PADRÃO FACADE (Auditoria e Indicadores) ---
@@ -34,12 +34,42 @@ class GeminiFacade {
     }
 }
 
-// Mocks iniciais para popular a interface (dados de fachada para o MVP)
+// ONGs padrão iniciais da aplicação
+const ongMocksPadrao = [
+    "Instituto Conecta RN",
+    "GACC-RN",
+    "Casa Durval Paiva"
+];
+
+// Mock inicial de Ações (Voluntários cadastrados para simular dados pré-existentes na interface)
 const voluntarioMocks = [
     { nome: "Mariana Souza", email: "mariana.souza@email.com", ong: "Instituto Conecta RN", dataCadastro: new Date(Date.now() - 3600000 * 24 * 3).toISOString() },
     { nome: "Carlos Henrique", email: "carlos.h@email.com", ong: "GACC-RN", dataCadastro: new Date(Date.now() - 3600000 * 24 * 2).toISOString() },
     { nome: "Beatriz Costa", email: "beatriz.costa@email.com", ong: "Casa Durval Paiva", dataCadastro: new Date(Date.now() - 3600000 * 12).toISOString() }
 ];
+
+// Carrega as ONGs do Firebase e as une às mockadas padrão, populando o dropdown select
+async function carregarOngs() {
+    const selectElement = document.getElementById('ong-vinculada');
+    if (!selectElement) return;
+
+    // Busca ONGs reais salvas no Firebase Firestore
+    const ongsReais = await DatabaseConnection.obterOngs();
+    
+    // Nomes das ONGs vindas do Firebase
+    const nomesOngsReais = ongsReais.map(o => o.nome);
+
+    // Combina ONGs padrão com as criadas na nuvem, removendo duplicados
+    const todasOngs = [...new Set([...ongMocksPadrao, ...nomesOngsReais])];
+
+    selectElement.innerHTML = '';
+    todasOngs.forEach(ong => {
+        const option = document.createElement('option');
+        option.value = ong;
+        option.textContent = ong;
+        selectElement.appendChild(option);
+    });
+}
 
 // Carrega e desenha a tabela de voluntários cadastrados
 async function renderizarTabela() {
@@ -97,7 +127,7 @@ async function renderizarTabela() {
     });
 }
 
-// Função de Tratamento do Submit do Formulário
+// Função de Tratamento do Submit do Formulário de Voluntários
 async function handleCadastrarVoluntario(event) {
     event.preventDefault(); // Impede o reload da página
 
@@ -106,8 +136,8 @@ async function handleCadastrarVoluntario(event) {
     const ong = document.getElementById('ong-vinculada').value;
     const checkin = document.querySelector('input[name="checkin"]:checked')?.value || "Não Informado";
 
-    if (!nome || !email) {
-        alert("Por favor, preencha todos os campos.");
+    if (!nome || !email || !ong) {
+        alert("Por favor, preencha todos os campos do Voluntário.");
         return;
     }
 
@@ -150,16 +180,54 @@ async function handleCadastrarVoluntario(event) {
     }
 }
 
+// Função de Tratamento do Submit do Formulário de Cadastro de ONGs
+async function handleCadastrarOng(event) {
+    event.preventDefault(); // Impede o reload da página
+
+    const nome = document.getElementById('nomeOng').value.trim();
+    const areaAtuacao = document.getElementById('areaAtuacao').value.trim();
+
+    if (!nome || !areaAtuacao) {
+        alert("Por favor, preencha todos os campos da ONG.");
+        return;
+    }
+
+    const novaOng = {
+        nome: nome,
+        areaAtuacao: areaAtuacao,
+        dataCadastro: new Date().toISOString()
+    };
+
+    // 1. Gravação da nova ONG no Firebase Firestore
+    const sucesso = await DatabaseConnection.salvarOng(novaOng);
+
+    if (sucesso) {
+        alert(`ONG "${nome}" cadastrada com sucesso!`);
+        document.getElementById('ong-form').reset();
+
+        // 2. Atualiza dinamicamente o <select> do formulário de voluntários
+        await carregarOngs();
+    } else {
+        alert("Erro ao cadastrar ONG no Firebase Firestore.");
+    }
+}
+
 // O Observer escuta novos cadastros e reconstrói a tabela reativa
 cadastroObserver.subscribe(() => {
     renderizarTabela();
 });
 
-// Vincula o listener diretamente ao formulário na raiz do carregamento do módulo
-const form = document.getElementById('cadastro-form');
-if (form) {
-    form.addEventListener('submit', handleCadastrarVoluntario);
+// Vincula os listeners diretamente aos formulários no carregamento do script
+const formVoluntario = document.getElementById('cadastro-form');
+if (formVoluntario) {
+    formVoluntario.addEventListener('submit', handleCadastrarVoluntario);
 }
 
-// Execução inicial para desenhar a tabela com dados mockados e do Firebase
+const formOng = document.getElementById('ong-form');
+if (formOng) {
+    formOng.addEventListener('submit', handleCadastrarOng);
+}
+
+// Inicializa a carga de dados nos dropdowns e tabelas
+carregarOngs();
 renderizarTabela();

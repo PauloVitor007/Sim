@@ -2,7 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// COLOQUE AS SUAS CHAVES AQUI (Aquelas que você pegou no painel)
+// COLOQUE AS SUAS CHAVES AQUI
 const firebaseConfig = {
     apiKey: "AIzaSyBgfM-sKVlDPy8DnHfwqy9BCy6mFXPwQSQ",
     authDomain: "conecta-impacto-9a1fb.firebaseapp.com",
@@ -40,6 +40,31 @@ export default class DatabaseConnection {
             return voluntarios;
         } catch (e) {
             console.error("Erro ao obter voluntários: ", e);
+            return [];
+        }
+    }
+
+    static async salvarOng(dados) {
+        try {
+            const docRef = await addDoc(collection(db, "ongs"), dados);
+            console.log("ONG salva com ID: ", docRef.id);
+            return true;
+        } catch (e) {
+            console.error("Erro ao salvar ONG: ", e);
+            return false;
+        }
+    }
+
+    static async obterOngs() {
+        try {
+            const querySnapshot = await getDocs(collection(db, "ongs"));
+            const ongs = [];
+            querySnapshot.forEach((doc) => {
+                ongs.push({ id: doc.id, ...doc.data() });
+            });
+            return ongs;
+        } catch (e) {
+            console.error("Erro ao obter ONGs: ", e);
             return [];
         }
     }

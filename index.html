@@ -123,15 +123,31 @@
                             </div>
 
                             <div class="form-group">
-                                <label>ONG VINCULADA</label>
+                                <label for="ong-vinculada">ONG VINCULADA</label>
                                 <select id="ong-vinculada" required>
-                                    <option value="Instituto Conecta RN">Instituto Conecta RN</option>
-                                    <option value="GACC-RN">GACC-RN</option>
-                                    <option value="Casa Durval Paiva">Casa de Apoio Durval Paiva</option>
+                                    <!-- Preenchido dinamicamente via JS -->
                                 </select>
                             </div>
 
                             <button type="submit">Cadastrar Voluntário</button>
+                        </form>
+                    </div>
+
+                    <!-- Formulário de Cadastro de ONGs -->
+                    <div class="card">
+                        <h2>Cadastrar Nova ONG</h2>
+                        <form id="ong-form">
+                            <div class="form-group">
+                                <label for="nomeOng">Nome da ONG</label>
+                                <input type="text" id="nomeOng" required placeholder="Ex: ONG Amigos do Planeta">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="areaAtuacao">Área de Atuação</label>
+                                <input type="text" id="areaAtuacao" required placeholder="Ex: Meio Ambiente / Saúde">
+                            </div>
+
+                            <button type="submit" class="btn btn-secondary">Salvar ONG</button>
                         </form>
                     </div>
                 </div>
