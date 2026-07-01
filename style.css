@@ -1,10 +1,13 @@
 :root {
     --bg-color: #0b1c1c;
     --card-color: #1a3333;
-    --btn-color: #00d48a;
-    --btn-hover: #00b375;
+    --primary: #2d5a27;          /* Verde Musgo */
+    --primary-hover: #22431d;
+    --accent: #d95d39;           /* Terracota / Laranja Quente */
+    --accent-hover: #c35030;
     --text-primary: #e0e0e0;
     --text-secondary: #a0b2b2;
+    --border-color: rgba(255, 255, 255, 0.05);
 }
 
 * {
@@ -18,59 +21,160 @@ body {
     background-color: var(--bg-color);
     color: var(--text-primary);
     display: flex;
-    justify-content: center;
-    padding: 2rem;
     min-height: 100vh;
 }
 
-.container {
-    width: 100%;
-    max-width: 1000px;
+.app-container {
+    display: flex;
+    width: 100vw;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 280px;
+    background-color: #081414;
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    padding: 2rem 1.5rem;
+}
+
+.brand {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--primary);
+    margin-bottom: 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Notifications Box na Sidebar */
+.notifications-panel {
+    margin-top: auto;
+    border-top: 1px solid var(--border-color);
+    padding-top: 1.5rem;
+}
+
+.notifications-panel h3 {
+    font-size: 0.9rem;
+    color: var(--accent);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+    overflow-y: auto;
 }
 
 header {
-    text-align: center;
-    margin-bottom: 2.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 header h1 {
-    color: var(--btn-color);
-    font-size: 2.5rem;
-    margin-bottom: 0.5rem;
+    font-size: 1.8rem;
+    color: var(--text-primary);
 }
 
-header p {
-    color: var(--text-secondary);
+/* Cards com elevação sutil e sem bordas duras */
+.card {
+    background-color: var(--card-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+    border: none;
+    display: flex;
+    flex-direction: column;
 }
 
-.grid {
+.card h2 {
+    margin-bottom: 1.2rem;
+    color: var(--text-primary);
+    font-size: 1.2rem;
+}
+
+/* Grid Layouts */
+.grid-kpis {
     display: grid;
-    grid-template-columns: 1fr 1.5fr;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.grid-main {
+    display: grid;
+    grid-template-columns: 1fr 1.8fr;
     gap: 2rem;
 }
 
-@media (max-width: 768px) {
-    .grid {
+@media (max-width: 1024px) {
+    .grid-main {
         grid-template-columns: 1fr;
     }
 }
 
-.card {
-    background-color: var(--card-color);
-    border-radius: 8px;
-    padding: 2rem;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-    border: 1px solid rgba(255,255,255,0.05);
+/* KPIs alinhados uniformemente */
+.kpi-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
-.card h2 {
-    margin-bottom: 1.5rem;
-    color: var(--btn-color);
-    font-size: 1.4rem;
-    border-bottom: 1px solid #2a4d4d;
-    padding-bottom: 0.5rem;
+.kpi-title {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
 }
 
+.kpi-value {
+    display: flex;
+    align-items: baseline;    /* Alinhamento uniforme pela linha de base */
+    gap: 5px;
+    font-weight: 700;
+    line-height: 1.1;
+    font-size: 2.2rem;
+    color: var(--text-primary);
+}
+
+.kpi-unit {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* Score de Confiança Card - Correções de Vazamento */
+.score-card {
+    min-width: 0;             /* Necessário para prevenir estouro no grid flex */
+}
+
+.score-value {
+    font-size: 1.6rem;        /* Diminuído o tamanho principal */
+    font-weight: 700;
+    line-height: 1.2;
+    word-wrap: break-word;    /* Força a quebra de strings longas */
+    overflow-wrap: break-word;
+    color: var(--accent);
+}
+
+.score-desc {
+    margin-top: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.3;
+}
+
+/* Forms */
 .form-group {
     margin-bottom: 1.2rem;
     display: flex;
@@ -79,7 +183,7 @@ header p {
 
 .form-group label {
     margin-bottom: 0.5rem;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: bold;
     color: var(--text-secondary);
     text-transform: uppercase;
@@ -90,38 +194,94 @@ header p {
     border: 1px solid #2a4d4d;
     background-color: #0f2424;
     color: var(--text-primary);
-    border-radius: 4px;
+    border-radius: 6px;
     outline: none;
     font-size: 0.95rem;
+    transition: border-color 0.2s;
 }
 
 .form-group input:focus, .form-group select:focus {
-    border-color: var(--btn-color);
+    border-color: var(--primary);
 }
 
-button {
+/* Botões com Paleta Quente Verde/Terracota */
+button, .btn {
     width: 100%;
-    padding: 1rem;
-    background-color: var(--btn-color);
-    color: #0b1c1c;
+    padding: 0.9rem;
+    background-color: var(--primary);
+    color: #fff;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     font-weight: bold;
-    font-size: 1rem;
+    font-size: 0.95rem;
     cursor: pointer;
     transition: background-color 0.2s, transform 0.1s;
+    text-align: center;
 }
 
-button:hover {
-    background-color: var(--btn-hover);
+button:hover, .btn:hover {
+    background-color: var(--primary-hover);
 }
 
-button:active {
-    transform: scale(0.98);
+.btn-secondary {
+    background-color: var(--accent);
 }
 
+.btn-secondary:hover {
+    background-color: var(--accent-hover);
+}
+
+/* Check-in Emocional Modernizado */
+.checkin-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 0.5rem;
+    width: 100%;
+}
+
+.checkin-option {
+    flex: 1;
+    position: relative;
+}
+
+.checkin-option input[type="radio"] {
+    display: none; /* Oculta input padrão */
+}
+
+.checkin-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px; /* Gap entre emoji e texto */
+    padding: 0.8rem;
+    background-color: #0f2424;
+    border: 2px solid #2a4d4d;
+    color: var(--text-secondary);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.checkin-label:hover {
+    border-color: var(--primary);
+    background-color: rgba(45, 90, 39, 0.1);
+}
+
+/* Estado Marcado (:checked) do Check-in */
+.checkin-option input[type="radio"]:checked + .checkin-label {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+    box-shadow: 0 0 10px rgba(45, 90, 39, 0.4);
+}
+
+/* Tabelas */
 .table-container {
     overflow-x: auto;
+    margin-top: 0.5rem;
 }
 
 table {
@@ -132,15 +292,77 @@ table {
 
 th, td {
     padding: 1rem;
-    border-bottom: 1px solid #2a4d4d;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 th {
-    color: var(--btn-color);
-    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
     text-transform: uppercase;
+    font-weight: 600;
 }
 
 tr:hover td {
-    background-color: #203f3f;
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* Empty States Humanizados e Intencionais */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.empty-state svg {
+    width: 50px;
+    height: 50px;
+    stroke: var(--text-secondary);
+    stroke-width: 1.5;
+    fill: none;
+    margin-bottom: 1rem;
+    opacity: 0.7;
+}
+
+.empty-state p {
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+/* Paginação ancorada abaixo da tabela */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.pagination-btn {
+    padding: 0.4rem 0.8rem;
+    background-color: #0f2424;
+    border: 1px solid #2a4d4d;
+    color: var(--text-primary);
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    transition: all 0.2s;
+    width: auto;
+}
+
+.pagination-btn:hover {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.pagination-info {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin: 0 8px;
 }

@@ -3,66 +3,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Conecta Impacto - Cadastro de Voluntários</title>
+    <title>Conecta Impacto (Raízes do Bem) - Dashboard</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🌱 Conecta Impacto</h1>
-            <p>Painel de Cadastro e Vinculação de Voluntários</p>
-        </header>
+
+    <div class="app-container">
         
-        <main class="grid">
-            <!-- Formulário de Cadastro -->
-            <section class="card">
-                <h2>Cadastrar Voluntário</h2>
-                <form id="cadastro-form">
-                    <div class="form-group">
-                        <label for="nomeVoluntario">Nome Completo</label>
-                        <input type="text" id="nomeVoluntario" required placeholder="Ex: João da Silva">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="emailVoluntario">E-mail</label>
-                        <input type="email" id="emailVoluntario" required placeholder="joao@exemplo.com">
-                    </div>
-
-                    <div style="margin-bottom: 15px;">
-                        <label style="font-weight: bold; font-size: 12px; color: var(--text-secondary);">ONG VINCULADA</label>
-                        <select id="ong-vinculada" style="width: 100%; padding: 10px; border: 1px solid #2a4d4d; border-radius: 4px; background-color: #0f2424; color: var(--text-primary);">
-                            <option value="Instituto Conecta RN">Instituto Conecta RN</option>
-                            <option value="GACC-RN">GACC-RN</option>
-                            <option value="Casa Durval Paiva">Casa de Apoio Durval Paiva</option>
-                        </select>
-                    </div>
-
-                    <button type="submit">Cadastrar Voluntário</button>
-                </form>
-            </section>
+        <!-- BARRA LATERAL (SIDEBAR) -->
+        <aside class="sidebar">
+            <div class="brand">
+                <span>🌱 Conecta Impacto</span>
+            </div>
             
-            <!-- Listagem de Voluntários -->
-            <section class="card">
-                <h2>Voluntários Cadastrados</h2>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Nome</th>
-                                <th>E-mail</th>
-                                <th>ONG Vinculada</th>
-                                <th>Data Cadastro</th>
-                            </tr>
-                        </thead>
-                        <tbody id="lista-voluntarios">
-                            <!-- Preenchido dinamicamente -->
-                            <tr>
-                                <td colspan="4" style="text-align: center; color: var(--text-secondary);">Carregando voluntários...</td>
-                            </tr>
-                        </tbody>
-                    </table>
+            <!-- Painel de Notificações com Empty State na lateral -->
+            <div class="notifications-panel">
+                <h3>Notificações</h3>
+                <div class="empty-state">
+                    <!-- Ícone de Sino sutil -->
+                    <svg viewBox="0 0 24 24" stroke="currentColor" fill="none">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                    </svg>
+                    <p style="font-size: 0.8rem;">Você não tem novas notificações</p>
                 </div>
-            </section>
+            </div>
+        </aside>
+
+        <!-- CONTEÚDO PRINCIPAL -->
+        <main class="main-content">
+            <header>
+                <h1>Dashboard ESG - Raízes do Bem</h1>
+            </header>
+
+            <!-- GRID DOS CARDS DE INDICADORES (KPIs) -->
+            <div class="grid-kpis">
+                <!-- Card 1: Horas -->
+                <div class="card kpi-card">
+                    <span class="kpi-title">Horas de Voluntariado</span>
+                    <div class="kpi-value">
+                        <span>0</span>
+                        <span class="kpi-unit">h</span>
+                    </div>
+                </div>
+
+                <!-- Card 2: Investimento -->
+                <div class="card kpi-card">
+                    <span class="kpi-title">Investimento Social</span>
+                    <div class="kpi-value">
+                        <span style="font-size: 1.8rem; font-weight: 500; color: var(--text-secondary);">R$</span>
+                        <span>0,00</span>
+                    </div>
+                </div>
+
+                <!-- Card 3: Voluntários Ativos -->
+                <div class="card kpi-card">
+                    <span class="kpi-title">Voluntários Ativos</span>
+                    <div class="kpi-value">
+                        <span>5</span>
+                    </div>
+                </div>
+
+                <!-- Card 4: Score de Confiança (Corrigido para evitar estouros) -->
+                <div class="card kpi-card score-card">
+                    <span class="kpi-title">Score de Confiança</span>
+                    <div class="score-value">
+                        91% Certificado pelo Selo ESG Raízes do Bem
+                    </div>
+                    <div class="score-desc">Auditoria Concluída</div>
+                </div>
+            </div>
+
+            <!-- GRID PRINCIPAL DE CADASTRO E AÇÕES -->
+            <div class="grid-main">
+                
+                <!-- COLUNA ESQUERDA: CADASTRO E CHECK-IN -->
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    
+                    <!-- Card de Check-in Emocional -->
+                    <div class="card">
+                        <h2>Check-in Emocional</h2>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Como você está se sentindo hoje?</p>
+                        <div class="checkin-group">
+                            <div class="checkin-option">
+                                <input type="radio" name="checkin" id="checkin-animado" value="Animado" checked>
+                                <label for="checkin-animado" class="checkin-label">
+                                    <span>😃</span>
+                                    <span>Animado</span>
+                                </label>
+                            </div>
+                            <div class="checkin-option">
+                                <input type="radio" name="checkin" id="checkin-cansado" value="Cansado">
+                                <label for="checkin-cansado" class="checkin-label">
+                                    <span>😐</span>
+                                    <span>Cansado</span>
+                                </label>
+                            </div>
+                            <div class="checkin-option">
+                                <input type="radio" name="checkin" id="checkin-exausto" value="Exausto">
+                                <label for="checkin-exausto" class="checkin-label">
+                                    <span>😴</span>
+                                    <span>Exausto</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Formulário de Cadastro de Voluntários -->
+                    <div class="card">
+                        <h2>Cadastrar Voluntário</h2>
+                        <form id="cadastro-form">
+                            <div class="form-group">
+                                <label for="nomeVoluntario">Nome Completo</label>
+                                <input type="text" id="nomeVoluntario" required placeholder="Ex: João da Silva">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="emailVoluntario">E-mail</label>
+                                <input type="email" id="emailVoluntario" required placeholder="joao@exemplo.com">
+                            </div>
+
+                            <div class="form-group">
+                                <label>ONG VINCULADA</label>
+                                <select id="ong-vinculada" required>
+                                    <option value="Instituto Conecta RN">Instituto Conecta RN</option>
+                                    <option value="GACC-RN">GACC-RN</option>
+                                    <option value="Casa Durval Paiva">Casa de Apoio Durval Paiva</option>
+                                </select>
+                            </div>
+
+                            <button type="submit">Cadastrar Voluntário</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- COLUNA DIREITA: LISTAGEM DE AÇÕES -->
+                <div class="card">
+                    <h2>Ações Registradas</h2>
+                    
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>E-mail</th>
+                                    <th>ONG Vinculada</th>
+                                    <th>Data Cadastro</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-voluntarios">
+                                <!-- O script app.js preenche a lista ou ativa o empty state -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Div do Empty State da Tabela (inicializado pelo script ou visível no início) -->
+                    <div id="tabela-vazia" class="empty-state" style="display: none;">
+                        <!-- Ícone de prancheta/documento vazio -->
+                        <svg viewBox="0 0 24 24" stroke="currentColor" fill="none">
+                            <rect x="9" y="9" width="12" height="12" rx="2" ry="2" />
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                        </svg>
+                        <p>Nenhuma ação solidária registrada até o momento</p>
+                    </div>
+
+                    <!-- Paginação ancorada exatamente abaixo da tabela -->
+                    <div class="pagination-container">
+                        <button class="pagination-btn">&lt;&lt;</button>
+                        <button class="pagination-btn">&lt;</button>
+                        <span class="pagination-info">1 / 5</span>
+                        <button class="pagination-btn">&gt;</button>
+                        <button class="pagination-btn">&gt;&gt;</button>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
